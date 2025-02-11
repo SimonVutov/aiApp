@@ -241,25 +241,24 @@ main {
 
 .search-form {
     display: flex;
-    gap: 1rem;
-    margin-bottom: 2rem;
     width: 100%;
-    justify-content: center;
+    max-width: 600px;
+    margin: 0 auto 1rem auto;
 }
 
 .search-input {
-    flex: 1;
-    max-width: 600px;
+    width: 100%;
     padding: 0.75rem 1rem;
     border: 2px solid var(--border-color);
     border-radius: 0.5rem;
     font-size: 1rem;
-    transition: border-color 0.2s;
+    transition: all 0.2s;
 }
 
 .search-input:focus {
-    outline: none;
     border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    outline: none;
 }
 
 .results-container {
@@ -532,4 +531,24 @@ h2 {
         width: 95%;
         padding: 1.5rem;
     }
+}
+
+/* Add search metrics styling */
+.search-metrics {
+    text-align: center;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background-color: var(--card-background);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.search-loading {
+    text-align: center;
+    color: var(--text-color);
+    font-size: 0.9rem;
+    margin: 1rem 0;
+    font-style: italic;
 }

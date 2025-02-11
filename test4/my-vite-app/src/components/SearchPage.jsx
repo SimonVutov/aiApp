@@ -1,25 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import axios from 'axios';
+import debounce from 'lodash/debounce';
 
 function SearchPage() {
     const [query, setQuery] = useState('');
     const [results, setResults] = useState([]);
     const [selectedFile, setSelectedFile] = useState(null);
+    const [searchMetrics, setSearchMetrics] = useState(null);
+    const [isSearching, setIsSearching] = useState(false);
 
-    const handleSearch = async (e) => {
-        e.preventDefault();
-        if (!query) return;
+    // Debounced search function
+    const debouncedSearch = useCallback(
+        debounce(async (searchQuery) => {
+            if (!searchQuery.trim()) {
+                setResults([]);
+                setSearchMetrics(null);
+                return;
+            }
 
-        try {
-            const response = await axios.get(
-                'http://localhost:8000/api/search/',
-                { params: { q: query } }
-            );
-            setResults(response.data.results);
-        } catch (error) {
-            console.error(error);
-            setResults([]);
-        }
+            setIsSearching(true);
+            const startTime = performance.now();
+
+            try {
+                const response = await axios.get(
+                    'http://localhost:8000/api/search/',
+                    { params: { q: searchQuery } }
+                );
+                const endTime = performance.now();
+                const searchTime = (endTime - startTime).toFixed(0);
+
+                setResults(response.data.results);
+                setSearchMetrics({
+                    count: response.data.results.length,
+                    time: searchTime
+                });
+            } catch (error) {
+                console.error(error);
+                setResults([]);
+                setSearchMetrics(null);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 300),
+        []
+    );
+
+    const handleSearchChange = (e) => {
+        const newQuery = e.target.value;
+        setQuery(newQuery);
+        debouncedSearch(newQuery);
     };
 
     const handleFileClick = async (filename) => {
@@ -38,19 +67,28 @@ function SearchPage() {
             <div className="container">
                 <h1>Search Your Documents</h1>
                 <div className="search-container">
-                    <form onSubmit={handleSearch} className="search-form">
+                    <div className="search-form">
                         <input
                             type="text"
                             value={query}
-                            onChange={(e) => setQuery(e.target.value)}
-                            placeholder="Enter your search query..."
+                            onChange={handleSearchChange}
+                            placeholder="Start typing to search..."
                             className="search-input"
                             aria-label="Search query"
                         />
-                        <button type="submit" className="button button-primary">
-                            Search
-                        </button>
-                    </form>
+                    </div>
+
+                    {searchMetrics && (
+                        <div className="search-metrics">
+                            Found {searchMetrics.count} {searchMetrics.count === 1 ? 'result' : 'results'} in {searchMetrics.time}ms
+                        </div>
+                    )}
+
+                    {isSearching && (
+                        <div className="search-loading">
+                            Searching...
+                        </div>
+                    )}
 
                     <div className="results-container">
                         {results.map((result, index) => (
