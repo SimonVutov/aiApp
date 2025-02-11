@@ -7,6 +7,7 @@ from django.conf import settings
 from sentence_transformers import SentenceTransformer
 from .faiss_index import index, metadata_list, EMBEDDING_DIM
 import atexit
+from urllib.parse import unquote
 
 # Initialize the model once at module level
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
@@ -51,36 +52,58 @@ class SearchView(APIView):
     """
 
     def get(self, request):
-        query = request.query_params.get('q', '')
+        query = request.GET.get('q', '')
         if not query:
             return Response({'results': []})
 
-        try:
-            # Generate embedding for the query
-            query_embedding = model.encode([query])[0].astype('float32')
-            query_embedding = query_embedding.reshape(1, -1)
+        # Generate embedding for the query
+        query_embedding = model.encode([query])
+        
+        # Search in FAISS index
+        D, I = index.search(query_embedding.astype('float32'), k=5)
+        
+        results = []
+        for dist, idx in zip(D[0], I[0]):
+            if idx < len(metadata_list):  # Ensure index is valid
+                file_data = metadata_list[idx]
+                results.append({
+                    'filename': file_data['filename'],
+                    'content_snippet': file_data['content'][:200] + '...',
+                    'distance': float(dist)
+                })
+        
+        return Response({'results': results})
 
-            # Search the index
-            k = 5  # Number of results to return
-            distances, indices = index.search(query_embedding, k)
 
-            # Format results
-            results = []
-            for idx, distance in zip(indices[0], distances[0]):
-                if idx < len(metadata_list):  # Check if the index is valid
-                    metadata = metadata_list[idx]
-                    results.append({
-                        'filename': metadata['filename'],
-                        'content_snippet': metadata['content'][:200] + '...',  # First 200 chars
-                        'distance': float(distance)  # Convert numpy float to Python float
-                    })
-
-            return Response({'results': results})
-        except Exception as e:
-            return Response(
-                {'error': str(e)}, 
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+class FileDetailView(APIView):
+    def get(self, request, filename):
+        # Decode the URL-encoded filename
+        decoded_filename = unquote(filename)
+        
+        # Find the file in metadata_list
+        file_data = None
+        for item in metadata_list:
+            if item['filename'] == decoded_filename:
+                file_data = item
+                break
+        
+        if file_data:
+            return Response({
+                'filename': file_data['filename'],
+                'content': file_data['content'],
+                'upload_date': file_data.get('upload_date', ''),
+                'metadata': file_data.get('metadata', {})
+            })
+            
+        # If file not found, return detailed error
+        return Response(
+            {
+                'error': 'File not found',
+                'filename_requested': decoded_filename,
+                'available_files': [item['filename'] for item in metadata_list]
+            },
+            status=status.HTTP_404_NOT_FOUND
+        )
 
 # Cleanup function
 def cleanup():
