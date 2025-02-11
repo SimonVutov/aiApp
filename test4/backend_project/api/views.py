@@ -8,6 +8,8 @@ from sentence_transformers import SentenceTransformer
 from .faiss_index import index, metadata_list, EMBEDDING_DIM
 import atexit
 from urllib.parse import unquote
+from .models import Document, Analytics
+from django.db.models import Sum
 
 # Initialize the model once at module level
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
@@ -104,6 +106,57 @@ class FileDetailView(APIView):
             },
             status=status.HTTP_404_NOT_FOUND
         )
+
+
+class DocumentsView(APIView):
+    def get(self, request):
+        search = request.GET.get('search', '')
+        sort_by = request.GET.get('sortBy', 'date')
+        sort_order = request.GET.get('sortOrder', 'desc')
+        
+        queryset = Document.objects.all()
+        
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        
+        order_field = '-last_modified' if sort_order == 'desc' else 'last_modified'
+        if sort_by == 'name':
+            order_field = '-name' if sort_order == 'desc' else 'name'
+        elif sort_by == 'type':
+            order_field = '-file_type' if sort_order == 'desc' else 'file_type'
+            
+        documents = queryset.order_by(order_field)
+        
+        return Response([{
+            'name': doc.name,
+            'type': doc.file_type,
+            'source': doc.source,
+            'size': doc.size,
+            'lastModified': doc.last_modified
+        } for doc in documents])
+
+
+class AnalyticsView(APIView):
+    def get(self, request):
+        analytics = Analytics.objects.first()
+        if not analytics:
+            analytics = Analytics.objects.create()
+            
+        total_storage = Document.objects.aggregate(Sum('size'))['size__sum'] or 0
+        
+        return Response({
+            'totalDocuments': Document.objects.count(),
+            'storageUsed': self.format_size(total_storage),
+            'recentSearches': analytics.recent_searches,
+            'activeUsers': analytics.active_users
+        })
+        
+    def format_size(self, size):
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size < 1024:
+                return f"{size:.2f} {unit}"
+            size /= 1024
+        return f"{size:.2f} TB"
 
 # Cleanup function
 def cleanup():

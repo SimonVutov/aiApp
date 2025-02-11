@@ -32,7 +32,10 @@ body,
 }
 
 body {
-    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    background-color: #f9fafb;
     color: var(--text-color);
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     min-width: 100%;
@@ -60,16 +63,15 @@ body {
 
 /* Navigation */
 .navbar {
-    width: 100%;
-    background-color: var(--card-background);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-bottom: 1px solid #e5e7eb;
     padding: 1rem 0;
 }
 
 .navbar-content {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 2rem;
+    padding: 0 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -77,26 +79,24 @@ body {
 
 .logo {
     font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--primary-color);
+    font-weight: bold;
+    color: #4f46e5;
     text-decoration: none;
 }
 
 .nav-links {
     display: flex;
     gap: 2rem;
-    align-items: center;
 }
 
 .nav-links a {
+    color: #4b5563;
     text-decoration: none;
-    color: var(--text-color);
     font-weight: 500;
-    transition: color 0.2s;
 }
 
 .nav-links a:hover {
-    color: var(--primary-color);
+    color: #4f46e5;
 }
 
 .nav-links a.button {
@@ -489,7 +489,7 @@ main {
 }
 
 .modal-content {
-    background-color: var(--card-background);
+    background-color: white;
     padding: 2rem;
     border-radius: 1rem;
     max-width: 800px;
@@ -510,6 +510,7 @@ main {
     align-items: center;
     justify-content: center;
     background-color: #f3f4f6;
+    border: none;
     border-radius: 50%;
     cursor: pointer;
     font-size: 1.25rem;
@@ -534,7 +535,7 @@ main {
     white-space: pre-wrap;
     font-size: 0.875rem;
     line-height: 1.7;
-    border: 1px solid var(--border-color);
+    border: 1px solid #e5e7eb;
 }
 
 h1 {
@@ -697,4 +698,135 @@ h2 {
     .footer-brand {
         max-width: 100%;
     }
+}
+
+/* Documents Page Styles */
+.documents-page {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.search-section,
+.connect-section {
+    margin-bottom: 3rem;
+}
+
+h1 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+    color: #111827;
+}
+
+.search-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.search-form {
+    margin-bottom: 1.5rem;
+}
+
+.search-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    outline: none;
+}
+
+.search-input:focus {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+.search-metrics {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.result-item {
+    padding: 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.result-item:hover {
+    border-color: #6366f1;
+    background-color: #f9fafb;
+}
+
+.result-item h3 {
+    margin: 0 0 0.5rem 0;
+    color: #111827;
+}
+
+.result-item p {
+    margin: 0;
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.connection-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.card {
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.card h3 {
+    margin: 0 0 1rem 0;
+    color: #111827;
+}
+
+.button {
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.button-secondary {
+    background: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+}
+
+.button-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.file-view {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.file-view pre {
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 6px;
+    overflow-x: auto;
+}
+
+.loading {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
 }
