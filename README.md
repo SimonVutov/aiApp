@@ -22,7 +22,7 @@
 **Access the application:
 **
 
-`Frontend: http://localhost:5174
+Frontend: `http://localhost:5174
 `
 
-`Backend API: http://localhost:8000/api/`
+Backend API: `http://localhost:8000/api/`
