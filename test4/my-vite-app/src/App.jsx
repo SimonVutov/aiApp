@@ -13,7 +13,7 @@ function App() {
       <div className="app-wrapper">
         <nav className="navbar">
           <div className="navbar-content">
-            <Link to="/" className="logo">DataSearch</Link>
+            <Link to="/" className="logo">Enterprise RAG Search</Link>
             <div className="nav-links">
               <Link to="/connect">Connect</Link>
               <Link to="/search">Search</Link>
@@ -32,6 +32,46 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
           </Routes>
         </main>
+
+        <footer className="footer">
+          <div className="footer-content">
+            <div className="footer-brand">
+              <div className="footer-logo">
+                <span>Enterprise RAG Search</span>
+              </div>
+              <p className="footer-description">
+                Intelligent document search for modern enterprises
+              </p>
+            </div>
+
+            <div className="footer-column">
+              <h3>Product</h3>
+              <ul className="footer-links">
+                <li><Link to="/features">Features</Link></li>
+                <li><Link to="/pricing">Pricing</Link></li>
+                <li><Link to="/security">Security</Link></li>
+              </ul>
+            </div>
+
+            <div className="footer-column">
+              <h3>Resources</h3>
+              <ul className="footer-links">
+                <li><Link to="/documentation">Documentation</Link></li>
+                <li><Link to="/api">API Reference</Link></li>
+                <li><Link to="/blog">Blog</Link></li>
+              </ul>
+            </div>
+
+            <div className="footer-column">
+              <h3>Company</h3>
+              <ul className="footer-links">
+                <li><Link to="/about">About</Link></li>
+                <li><Link to="/contact">Contact</Link></li>
+                <li><Link to="/privacy">Privacy</Link></li>
+              </ul>
+            </div>
+          </div>
+        </footer>
       </div>
     </Router>
   );
