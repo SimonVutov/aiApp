@@ -9,6 +9,12 @@ function DocumentsPage() {
     const [searchMetrics, setSearchMetrics] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
+    const [recentDocuments, setRecentDocuments] = useState([]);
+    const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
+
+    useEffect(() => {
+        fetchRecentDocuments();
+    }, []);
 
     // Debounce search function
     useEffect(() => {
@@ -60,6 +66,34 @@ function DocumentsPage() {
         setSelectedFile(null);
     };
 
+    const fetchRecentDocuments = async () => {
+        setIsLoadingDocuments(true);
+        try {
+            const response = await axios.get('http://localhost:8000/api/documents/');
+            setRecentDocuments(response.data);
+        } catch (error) {
+            console.error('Error fetching recent documents:', error);
+        } finally {
+            setIsLoadingDocuments(false);
+        }
+    };
+
+    const formatFileSize = (bytes) => {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+    };
+
     return (
         <div className="documents-page">
             {/* Search Section */}
@@ -108,7 +142,10 @@ function DocumentsPage() {
                 <div className="connection-options">
                     <div className="card">
                         <h3>File Upload</h3>
-                        <FileUpload />
+                        <FileUpload onUploadComplete={() => {
+                            console.log('Upload complete, refreshing documents...');
+                            fetchRecentDocuments();
+                        }} />
                     </div>
 
                     <div className="card">
@@ -127,6 +164,49 @@ function DocumentsPage() {
                         </button>
                     </div>
                 </div>
+            </section>
+
+            {/* Recent Documents Section */}
+            <section className="recent-documents">
+                <div className="section-header">
+                    <h2>Recent Documents</h2>
+                    <div className="document-stats">
+                        <span>{recentDocuments.length} documents</span>
+                        <span>•</span>
+                        <span>{formatFileSize(recentDocuments.reduce((acc, doc) => acc + doc.size, 0))}</span>
+                    </div>
+                </div>
+                {isLoadingDocuments ? (
+                    <div className="loading-documents">Loading recent documents...</div>
+                ) : recentDocuments.length === 0 ? (
+                    <div className="no-documents">
+                        <p>No documents uploaded yet. Start by uploading your first document above!</p>
+                    </div>
+                ) : (
+                    <div className="documents-grid">
+                        {recentDocuments.map((doc, index) => (
+                            <div key={index} className="document-card" onClick={() => handleFileClick(doc.name)}>
+                                <div className="document-icon">
+                                    {doc.file_type === 'pdf' ? '📄' :
+                                        doc.file_type === 'doc' ? '📝' :
+                                            doc.file_type === 'txt' ? '📃' : '📎'}
+                                </div>
+                                <div className="document-info">
+                                    <h3>{doc.name}</h3>
+                                    <p className="document-snippet">{doc.content?.substring(0, 100)}...</p>
+                                    <div className="document-meta">
+                                        <span className="document-type">{doc.file_type.toUpperCase()}</span>
+                                        <span className="document-size">{formatFileSize(doc.size)}</span>
+                                        <span className="document-date">{formatDate(doc.last_modified)}</span>
+                                    </div>
+                                    <div className="document-tags">
+                                        <span className="tag source-tag">{doc.source}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
             </section>
 
             {/* File View Modal */}
