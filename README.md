@@ -1,28 +1,25 @@
-**Clone the repository:
-**
+For backend (/test4/backend)
 
-`git clone <your-repository-url>
-`
+```jsx
+python3 -m venv venv
+source venv/bin/activate
 
-`cd <project-directory>
-`
+brew install postgresql@14
+brew services start postgresql@14
 
-**Start the application:
-**
+createdb mydatabase
+createuser myuser -P
 
-`docker-compose up --build
-`
+pip install -r requirements.txt
+python manage.py migrate
+python manage.py runserver 0.0.0.0:8000
+```
 
-**Run migrations:
-**
+For front end (/test4/my-vite-app)
 
-`docker-compose exec backend python manage.py migrate
-`
+```jsx
+npm install
+npm run dev
+```
 
-**Access the application:
-**
-
-Frontend: `http://localhost:5174
-`
-
-Backend API: `http://localhost:8000/api/`
+Go to http://localhost:5174/
