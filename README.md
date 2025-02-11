@@ -1,4 +1,4 @@
-For backend
+For backend (/test4/backend)
 
 ```jsx
 python3 -m venv venv
@@ -15,7 +15,7 @@ python manage.py migrate
 python manage.py runserver 0.0.0.0:8000
 ```
 
-For front end
+For front end (/test4/my-vite-app)
 
 ```jsx
 npm install
