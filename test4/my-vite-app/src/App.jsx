@@ -10,27 +10,29 @@ import './styles/global.css';
 function App() {
   return (
     <Router>
-      <nav className="navbar">
-        <div className="container navbar-content">
-          <Link to="/" className="logo">DataSearch</Link>
-          <div className="nav-links">
-            <Link to="/connect">Connect</Link>
-            <Link to="/search">Search</Link>
-            <Link to="/signin" className="button button-secondary">Sign In</Link>
-            <Link to="/signup" className="button button-primary">Sign Up</Link>
+      <div className="app-wrapper">
+        <nav className="navbar">
+          <div className="navbar-content">
+            <Link to="/" className="logo">DataSearch</Link>
+            <div className="nav-links">
+              <Link to="/connect">Connect</Link>
+              <Link to="/search">Search</Link>
+              <Link to="/signin" className="button button-secondary">Sign In</Link>
+              <Link to="/signup" className="button button-primary">Sign Up</Link>
+            </div>
           </div>
-        </div>
-      </nav>
+        </nav>
 
-      <main>
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/connect" element={<ConnectPage />} />
-          <Route path="/search" element={<SearchPage />} />
-          <Route path="/signin" element={<SignIn />} />
-          <Route path="/signup" element={<SignUp />} />
-        </Routes>
-      </main>
+        <main>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/connect" element={<ConnectPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/signin" element={<SignIn />} />
+            <Route path="/signup" element={<SignUp />} />
+          </Routes>
+        </main>
+      </div>
     </Router>
   );
 }
