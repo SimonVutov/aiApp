@@ -1,28 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import axios from 'axios';
 
-function FileUpload({ onUploadComplete }) {
+function FileUpload() {
     const [selectedFiles, setSelectedFiles] = useState([]);
     const [uploadProgress, setUploadProgress] = useState({});
-    const [uploadStatus, setUploadStatus] = useState('');
+    const [message, setMessage] = useState('');
 
-    const handleFileChange = async (event) => {
-        const files = Array.from(event.target.files);
-        setSelectedFiles(files);
-        setUploadStatus('Uploading...');
-
-        const uploadPromises = files.map(uploadFile);
-
-        try {
-            await Promise.all(uploadPromises);
-            setUploadStatus('Upload complete!');
-            if (onUploadComplete) {
-                onUploadComplete();
-            }
-        } catch (error) {
-            setUploadStatus('Upload failed');
-            console.error('Upload error:', error);
-        }
+    const handleFileChange = (e) => {
+        setSelectedFiles(Array.from(e.target.files));
+        setUploadProgress({});
     };
 
     const uploadFile = async (file) => {
@@ -31,7 +17,7 @@ function FileUpload({ onUploadComplete }) {
 
         try {
             await axios.post(
-                'http://localhost:8000/api/upload/',
+                'http://127.0.0.1:8000/api/upload/',
                 formData,
                 {
                     headers: {
@@ -53,6 +39,22 @@ function FileUpload({ onUploadComplete }) {
             console.error(`Error uploading ${file.name}:`, error);
             return false;
         }
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (selectedFiles.length === 0) return;
+
+        setMessage(`Uploading ${selectedFiles.length} files...`);
+
+        let successCount = 0;
+        for (const file of selectedFiles) {
+            const success = await uploadFile(file);
+            if (success) successCount++;
+        }
+
+        setMessage(`Successfully uploaded ${successCount} of ${selectedFiles.length} files`);
+        setSelectedFiles([]);
     };
 
     const handleDragOver = (e) => {
@@ -82,8 +84,12 @@ function FileUpload({ onUploadComplete }) {
                 />
                 <label htmlFor="file-input" className="file-label">
                     <div className="upload-icon">📁</div>
-                    <p>Click to upload or drag and drop</p>
-                    <p className="file-info">PDF, DOC, TXT up to 10MB</p>
+                    <p>Drag & drop files here or click to select</p>
+                    <span className="file-info">
+                        {selectedFiles.length > 0
+                            ? `${selectedFiles.length} files selected`
+                            : 'No files selected'}
+                    </span>
                 </label>
             </div>
 
@@ -105,12 +111,16 @@ function FileUpload({ onUploadComplete }) {
                             </div>
                         ))}
                     </div>
+                    <button
+                        onClick={handleSubmit}
+                        className="button button-primary"
+                    >
+                        Upload {selectedFiles.length} Files
+                    </button>
                 </div>
             )}
 
-            {uploadStatus && (
-                <div className="upload-message">{uploadStatus}</div>
-            )}
+            {message && <p className="upload-message">{message}</p>}
         </div>
     );
 }

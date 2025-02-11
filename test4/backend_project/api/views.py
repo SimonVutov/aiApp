@@ -9,9 +9,7 @@ from .faiss_index import index, metadata_list, EMBEDDING_DIM
 import atexit
 from urllib.parse import unquote
 from .models import Document, Analytics
-from django.db.models import Sum, Q
-from django.utils import timezone
-from django.db.models.functions import Length
+from django.db.models import Sum
 
 # Initialize the model once at module level
 model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
@@ -24,34 +22,30 @@ class FileUploadView(APIView):
     """
 
     def post(self, request):
-        file = request.FILES.get('file')
-        if not file:
-            return Response({'error': 'No file provided'}, status=400)
+        file_obj = request.FILES.get('file')
+        if not file_obj:
+            return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Get file information
-        file_name = file.name
-        file_size = file.size
-        file_type = os.path.splitext(file_name)[1][1:].lower()
+        # Read file content as text
+        # Note: This example assumes the file is text. If it's not, you'll need additional logic.
+        file_content = file_obj.read().decode('utf-8', errors='ignore')
         
-        # Create document record
-        document = Document.objects.create(
-            name=file_name,
-            content=file.read().decode('utf-8', errors='ignore'),  # Basic content extraction
-            file_type=file_type,
-            size=file_size,
-            source='upload',
-            last_modified=timezone.now()
-        )
-
-        return Response({
-            'message': 'File uploaded successfully',
-            'document': {
-                'name': document.name,
-                'size': document.size,
-                'type': document.file_type,
-                'last_modified': document.last_modified
-            }
+        # Generate embedding of the file content
+        embedding = model.encode([file_content])  # shape: (1, EMBEDDING_DIM)
+        
+        # Convert embedding to float32, as FAISS works with float32
+        embedding = embedding.astype('float32')
+        
+        # Add to FAISS index
+        index.add(embedding)
+        
+        # Keep track of metadata
+        metadata_list.append({
+            'filename': file_obj.name,
+            'content': file_content
         })
+        
+        return Response({'message': 'File uploaded and indexed successfully'})
 
 
 class SearchView(APIView):
@@ -64,49 +58,23 @@ class SearchView(APIView):
         if not query:
             return Response({'results': []})
 
-        # Get exact matches first
-        exact_matches = Document.objects.filter(
-            Q(content__icontains=query) | Q(name__icontains=query)
-        ).order_by('-last_modified')
-
-        # If we have less than 3 results, get additional fuzzy matches
-        if exact_matches.count() < 3:
-            # Get words from the query
-            query_words = query.lower().split()
-            
-            # Create a Q object for fuzzy matching
-            fuzzy_q = Q()
-            for word in query_words:
-                fuzzy_q |= Q(content__icontains=word) | Q(name__icontains=word)
-            
-            # Get additional documents, excluding exact matches
-            additional_matches = Document.objects.exclude(
-                id__in=exact_matches.values_list('id', flat=True)
-            ).filter(fuzzy_q).order_by('-last_modified')
-
-            # Combine results
-            results = list(exact_matches) + list(additional_matches)
-            
-            # If still less than 3, add most recent documents
-            if len(results) < 3:
-                recent_docs = Document.objects.exclude(
-                    id__in=[doc.id for doc in results]
-                ).order_by('-last_modified')[:3-len(results)]
-                results.extend(recent_docs)
-        else:
-            results = exact_matches
-
-        # Format response
-        return Response({
-            'results': [{
-                'filename': doc.name,
-                'content_snippet': doc.content[:200] + '...' if doc.content else '',
-                'file_type': doc.file_type,
-                'size': doc.size,
-                'last_modified': doc.last_modified,
-                'match_type': 'exact' if doc in exact_matches else 'similar' if doc not in exact_matches[:3] else 'recent'
-            } for doc in results[:10]]  # Limit to 10 total results
-        })
+        # Generate embedding for the query
+        query_embedding = model.encode([query])
+        
+        # Search in FAISS index
+        D, I = index.search(query_embedding.astype('float32'), k=5)
+        
+        results = []
+        for dist, idx in zip(D[0], I[0]):
+            if idx < len(metadata_list):  # Ensure index is valid
+                file_data = metadata_list[idx]
+                results.append({
+                    'filename': file_data['filename'],
+                    'content_snippet': file_data['content'][:200] + '...',
+                    'distance': float(dist)
+                })
+        
+        return Response({'results': results})
 
 
 class FileDetailView(APIView):
@@ -142,14 +110,29 @@ class FileDetailView(APIView):
 
 class DocumentsView(APIView):
     def get(self, request):
-        documents = Document.objects.all().order_by('-last_modified')[:10]  # Get 10 most recent
+        search = request.GET.get('search', '')
+        sort_by = request.GET.get('sortBy', 'date')
+        sort_order = request.GET.get('sortOrder', 'desc')
+        
+        queryset = Document.objects.all()
+        
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        
+        order_field = '-last_modified' if sort_order == 'desc' else 'last_modified'
+        if sort_by == 'name':
+            order_field = '-name' if sort_order == 'desc' else 'name'
+        elif sort_by == 'type':
+            order_field = '-file_type' if sort_order == 'desc' else 'file_type'
+            
+        documents = queryset.order_by(order_field)
+        
         return Response([{
             'name': doc.name,
-            'content': doc.content[:200] if doc.content else '',  # First 200 chars as snippet
-            'file_type': doc.file_type,
-            'size': doc.size,
+            'type': doc.file_type,
             'source': doc.source,
-            'last_modified': doc.last_modified
+            'size': doc.size,
+            'lastModified': doc.last_modified
         } for doc in documents])
 
 
