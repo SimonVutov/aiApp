@@ -27,22 +27,29 @@ class FileUploadView(APIView):
             return Response({'error': 'No file uploaded'}, status=status.HTTP_400_BAD_REQUEST)
 
         # Read file content as text
-        # Note: This example assumes the file is text. If it's not, you'll need additional logic.
         file_content = file_obj.read().decode('utf-8', errors='ignore')
         
         # Generate embedding of the file content
-        embedding = model.encode([file_content])  # shape: (1, EMBEDDING_DIM)
-        
-        # Convert embedding to float32, as FAISS works with float32
+        embedding = model.encode([file_content])
         embedding = embedding.astype('float32')
         
         # Add to FAISS index
         index.add(embedding)
         
+        # Store file information in the database
+        document = Document.objects.create(
+            name=file_obj.name,
+            content=file_content,
+            file_type=file_obj.name.split('.')[-1] if '.' in file_obj.name else 'txt',
+            source='upload',
+            size=file_obj.size
+        )
+        
         # Keep track of metadata
         metadata_list.append({
             'filename': file_obj.name,
-            'content': file_content
+            'content': file_content,
+            'document_id': document.id
         })
         
         return Response({'message': 'File uploaded and indexed successfully'})
@@ -68,13 +75,41 @@ class SearchView(APIView):
         for dist, idx in zip(D[0], I[0]):
             if idx < len(metadata_list):  # Ensure index is valid
                 file_data = metadata_list[idx]
+                
+                # Convert distance to similarity score (percentage)
+                # FAISS L2 distance: smaller is better, convert to percentage
+                max_distance = 20  # Empirical maximum L2 distance for normalization
+                similarity = max(0, min(100, (1 - dist/max_distance) * 100))
+                
+                # Get document from database if it exists
+                doc = Document.objects.filter(name=file_data['filename']).first()
+                
+                # Format file size
+                size = "Unknown"
+                if doc and doc.size:
+                    size = self.format_size(doc.size)
+                
+                # Get file format from extension
+                file_format = file_data['filename'].split('.')[-1].upper() if '.' in file_data['filename'] else 'TXT'
+                
                 results.append({
                     'filename': file_data['filename'],
                     'content_snippet': file_data['content'][:200] + '...',
-                    'distance': float(dist)
+                    'match': round(similarity),
+                    'distance': float(dist),
+                    'format': file_format,
+                    'size': size,
+                    'dateAdded': doc.created_at.strftime('%Y-%m-%d') if doc else 'Unknown'
                 })
         
         return Response({'results': results})
+
+    def format_size(self, size_in_bytes):
+        for unit in ['B', 'KB', 'MB', 'GB']:
+            if size_in_bytes < 1024:
+                return f"{size_in_bytes:.1f} {unit}"
+            size_in_bytes /= 1024
+        return f"{size_in_bytes:.1f} TB"
 
 
 class FileDetailView(APIView):
