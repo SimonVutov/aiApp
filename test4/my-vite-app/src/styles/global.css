@@ -1,8 +1,8 @@
 :root {
-    --primary-color: #2563eb;
+    --primary-color: #0f172a;
     --secondary-color: #1e40af;
-    --background-color: #f8fafc;
-    --text-color: #1e293b;
+    --background-color: #ffffff;
+    --text-color: #475569;
     --card-background: #ffffff;
     --border-color: #e2e8f0;
     --gray-light: #f3f4f6;
@@ -11,6 +11,8 @@
     --transition: all 0.3s ease;
     --container-padding: 2rem;
     --section-spacing: 4rem;
+    --heading-color: #1e293b;
+    --button-radius: 8px;
 }
 
 /* Reset all default margins and paddings */
@@ -34,9 +36,10 @@ body,
 body {
     background-color: var(--background-color);
     color: var(--text-color);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    font-family: Inter, -apple-system, BlinkMacSystemFont, sans-serif;
     min-width: 100%;
     overflow-x: hidden;
+    line-height: 1.5;
 }
 
 /* Ensure app wrapper takes full width */
@@ -62,8 +65,8 @@ body {
 /* Navigation */
 .navbar {
     width: 100%;
-    background-color: var(--card-background);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    border-bottom: 1px solid var(--border-color);
     padding: 1rem 0;
 }
 
@@ -77,9 +80,12 @@ body {
 }
 
 .logo {
-    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--heading-color);
     font-weight: 600;
-    color: var(--primary-color);
+    font-size: 1.25rem;
     text-decoration: none;
 }
 
@@ -90,14 +96,9 @@ body {
 }
 
 .nav-links a {
-    text-decoration: none;
     color: var(--text-color);
+    text-decoration: none;
     font-weight: 500;
-    transition: color 0.2s;
-}
-
-.nav-links a:hover {
-    color: var(--primary-color);
 }
 
 .nav-links a.button {
@@ -120,26 +121,28 @@ main {
     text-align: center;
     padding: var(--section-spacing) 0;
     max-width: 800px;
-    margin: 0 auto;
+    margin: 6rem auto;
+    padding: 0 2rem;
 }
 
 .hero h1 {
-    font-size: clamp(2.5rem, 5vw, 3.5rem);
+    font-size: 3.5rem;
+    line-height: 1.1;
+    color: var(--heading-color);
+    font-weight: 600;
     margin-bottom: 1.5rem;
-    line-height: 1.2;
 }
 
 .hero p {
-    font-size: clamp(1.1rem, 2vw, 1.25rem);
-    margin-bottom: 2rem;
-    color: var(--gray-medium);
+    font-size: 1.25rem;
+    color: var(--text-color);
+    margin-bottom: 2.5rem;
 }
 
 .hero-buttons {
     display: flex;
     gap: 1rem;
     justify-content: center;
-    flex-wrap: wrap;
 }
 
 /* Features Section */
@@ -164,31 +167,33 @@ main {
 }
 
 .button {
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.625rem 1rem;
+    border-radius: var(--button-radius);
+    font-weight: 500;
     transition: all 0.2s;
+    text-decoration: none;
 }
 
 .button-primary {
     background-color: var(--primary-color);
     color: white;
+    border: none;
 }
 
 .button-primary:hover {
-    background-color: var(--secondary-color);
+    opacity: 0.9;
 }
 
 .button-secondary {
-    background-color: var(--gray-light);
-    color: var(--text-color);
+    background-color: transparent;
+    color: var(--heading-color);
+    border: 1px solid var(--border-color);
 }
 
 .button-secondary:hover {
-    background-color: #e5e7eb;
+    background-color: #f8fafc;
 }
 
 /* Forms */
@@ -334,6 +339,18 @@ main {
     .button {
         width: 100%;
         text-align: center;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero p {
+        font-size: 1.125rem;
+    }
+
+    .navbar-content {
+        padding: 0 1rem;
     }
 }
 

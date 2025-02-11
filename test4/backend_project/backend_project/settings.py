@@ -86,8 +86,8 @@ DATABASES = {
         'NAME': 'mydatabase',
         'USER': 'myuser',
         'PASSWORD': 'mypassword',
-        'HOST': 'db',
-        'PORT': '5432',  # Keep this as 5432 as it's the internal container port
+        'HOST': 'localhost',  # Changed from 'db' to 'localhost'
+        'PORT': '5432',
     }
 }
 
