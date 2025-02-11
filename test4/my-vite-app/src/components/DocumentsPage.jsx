@@ -93,8 +93,20 @@ function DocumentsPage() {
                                     className="result-item"
                                     onClick={() => handleFileClick(result.filename)}
                                 >
-                                    <h3>{result.filename}</h3>
+                                    <div className="result-header">
+                                        <h3>{result.filename}</h3>
+                                        <span className="match-percentage">
+                                            {result.match}% Match
+                                        </span>
+                                    </div>
                                     <p>{result.content_snippet}</p>
+                                    <div className="result-metadata">
+                                        <span>{result.format}</span>
+                                        <span>•</span>
+                                        <span>{result.size}</span>
+                                        <span>•</span>
+                                        <span>Added: {result.dateAdded}</span>
+                                    </div>
                                 </div>
                             ))
                         )}

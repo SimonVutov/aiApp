@@ -20,6 +20,15 @@ function SignIn() {
         password: '',
     });
     const [showPassword, setShowPassword] = useState(false);
+    const [searchResults, setSearchResults] = useState([
+        {
+            match: 95,
+            format: 'PDF',
+            size: '2.3MB',
+            dateAdded: '2024-03-20'
+        }
+        // Add more results as needed
+    ]);
 
     const handleSubmit = (e) => {
         e.preventDefault();
