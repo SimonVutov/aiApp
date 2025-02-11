@@ -1,6 +1,6 @@
 # aiApp
 
-In `/backend_project`  run `python [manage.py](http://manage.py/) runserver`
+In `/backend_project`  run `python manage.py runserver`
 
 In `/my-vite-app` run `npm run dev`
 
